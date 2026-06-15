@@ -1,0 +1,238 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    /* box-sizing: border-box; */
+    border-width: 0;
+    /* border-style: solid; */
+    border-color: #FFFFFF;
+  }
+
+  body {
+    @apply antialiased text-drbi-dark bg-[#F9FAFB] font-sans overflow-x-hidden;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400;
+  }
+}
+
+@layer components {
+  .nav-link {
+    @apply px-4 py-3 text-sm font-medium transition-colors border-b-2 border-transparent hover:text-drbi-navy hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-drbi-blue focus-visible:ring-opacity-50;
+  }
+
+  .nav-link.active {
+    @apply text-drbi-navy border-drbi-border bg-drbi-light;
+  }
+
+  /* ── Section Headers ──────────────────────────── */
+  .section-header {
+    @apply flex items-center gap-3 text-lg font-bold text-drbi-navy mb-5 pb-3 border-b border-drbi-border;
+  }
+
+  .section-title {
+    @apply text-lg font-bold text-drbi-navy;
+  }
+
+  /* ── Cards ──────────────────────────────────────── */
+  .card {
+    @apply bg-white rounded-xl border border-drbi-border shadow-soft overflow-hidden;
+  }
+
+  .card-header {
+    @apply px-6 py-4 border-b border-drbi-border bg-gray-50/50 rounded-t-xl;
+  }
+
+  .card-body {
+    @apply px-6 py-5;
+  }
+
+  .stat-card {
+    @apply bg-white rounded-xl border border-drbi-border shadow-soft px-5 py-4 transition-shadow hover:shadow-elevated;
+  }
+
+  /* ── Page Container ─────────────────────────────── */
+  .page-container {
+    @apply max-w-[1200px] mx-auto px-4 py-8 animate-fade-in;
+  }
+
+  /* ── Buttons ─────────────────────────────────────── */
+  .btn {
+    @apply inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer;
+  }
+
+  .btn-primary {
+    @apply bg-drbi-navy text-white hover:bg-drbi-blue focus-visible:ring-drbi-blue shadow-sm hover:shadow-md;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-100 text-drbi-dark hover:bg-gray-200 border border-drbi-border focus-visible:ring-gray-300;
+  }
+
+  .btn-success {
+    @apply bg-emerald-600 text-white hover:bg-emerald-700 focus-visible:ring-emerald-500 shadow-sm hover:shadow-md;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent text-drbi-muted hover:bg-gray-100 hover:text-drbi-dark;
+  }
+
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs rounded-md;
+  }
+
+  /* ── Form Elements ───────────────────────────────── */
+  .form-label {
+    @apply block text-xs font-semibold text-drbi-muted uppercase tracking-wider mb-1.5;
+  }
+
+  .form-input {
+    @apply w-full border border-drbi-border rounded-lg px-3.5 py-2.5 text-sm transition-all focus:border-drbi-blue focus:ring-2 focus:ring-drbi-blue/20 focus:outline-none placeholder:text-gray-400 bg-white disabled:bg-gray-50 disabled:text-gray-500;
+  }
+
+  .form-select {
+    @apply border border-drbi-border rounded-lg px-3 py-2.5 text-sm bg-white transition-all focus:border-drbi-blue focus:ring-2 focus:ring-drbi-blue/20 focus:outline-none cursor-pointer;
+  }
+
+  .form-textarea {
+    @apply w-full border border-drbi-border rounded-lg px-3.5 py-2.5 text-sm transition-all resize-y focus:border-drbi-blue focus:ring-2 focus:ring-drbi-blue/20 focus:outline-none placeholder:text-gray-400;
+  }
+
+  /* ── Tables ──────────────────────────────────────── */
+  .drbi-table {
+    @apply w-full text-sm text-left;
+  }
+
+  .drbi-table thead {
+    @apply bg-gray-50;
+  }
+
+  .drbi-table th {
+    @apply px-4 py-3 text-xs font-semibold text-drbi-muted uppercase tracking-wider border-b border-drbi-border;
+  }
+
+  .drbi-table td {
+    @apply px-4 py-3 border-b border-drbi-border text-drbi-dark;
+  }
+
+  .drbi-table tbody tr {
+    @apply hover:bg-drbi-light/50 transition-colors;
+  }
+
+  /* ── Badges ──────────────────────────────────────── */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap;
+  }
+
+  .badge-critical {
+    @apply bg-red-100 text-red-700 ring-1 ring-drbi-border;
+  }
+
+  .badge-high {
+    @apply bg-orange-100 text-orange-700 ring-1 ring-drbi-border;
+  }
+
+  .badge-medium {
+    @apply bg-yellow-100 text-yellow-700 ring-1 ring-drbi-border;
+  }
+
+  .badge-low {
+    @apply bg-green-100 text-green-700 ring-1 ring-drbi-border;
+  }
+
+  .badge-published {
+    @apply bg-emerald-100 text-emerald-700 ring-1 ring-drbi-border;
+  }
+
+  .badge-draft {
+    @apply bg-gray-100 text-gray-600 ring-1 ring-drbi-border;
+  }
+
+  .badge-archived {
+    @apply bg-purple-100 text-purple-700 ring-1 ring-drbi-border;
+  }
+
+  .badge-cyber {
+    @apply bg-cyan-100 text-cyan-700 ring-1 ring-drbi-border;
+  }
+
+  .badge-fraud {
+    @apply bg-red-100 text-red-600 ring-1 ring-drbi-border;
+  }
+
+  .badge-datasec {
+    @apply bg-blue-100 text-blue-700 ring-1 ring-drbi-border;
+  }
+
+  .badge-compliance {
+    @apply bg-indigo-100 text-indigo-700 ring-1 ring-drbi-border;
+  }
+
+  .badge-master {
+    @apply bg-amber-100 text-amber-700 ring-1 ring-drbi-border;
+  }
+
+  /* ── Terminal Panel ─────────────────────────────── */
+  .terminal-panel {
+    @apply bg-gray-950 text-gray-300 font-mono text-xs overflow-y-auto p-1;
+  }
+
+  .terminal-line {
+    @apply px-3 py-1.5 border-b border-drbi-border hover:bg-gray-900/60 transition-colors;
+  }
+
+  /* ── Animations ─────────────────────────────────── */
+  .blink {
+    animation: blink 1.2s infinite;
+  }
+
+  @keyframes blink {
+
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.3;
+    }
+  }
+
+  .event-new {
+    animation: eventHighlight 2s ease-out;
+  }
+
+  @keyframes eventHighlight {
+    0% {
+      background-color: rgba(16, 185, 129, 0.15);
+    }
+
+    100% {
+      background-color: transparent;
+    }
+  }
+}

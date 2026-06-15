@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+*.lock
+package-lock.json
+.venv/
+env/
+venv/
+
+# Build outputs
+dist/
+build/
+__pycache__/
+*.pyc
+*.egg-info/
+frontend/tsconfig.tsbuildinfo
+
+# Images and Icons
+frontend/src/assets/icons/
+frontend/src/assets/img/
+
+# Environment variables
+.env
+.env.local
+.env*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads
+uploads/
+*.pdf
+*.doc
+*.docx
+
+# Confidential
+secret*
+credentials*
+*.key
+*.pem
