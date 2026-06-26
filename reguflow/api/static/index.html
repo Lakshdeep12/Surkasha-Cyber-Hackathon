@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canara Bank Dashboard - ReguFlow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.5);
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            padding: 1.5rem 2rem;
+            background-color: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.5; }
+        }
+
+        main {
+            padding: 2rem;
+            flex: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .ledger-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .ledger-card {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            animation: slideUp 0.4s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        @keyframes slideUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .ledger-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            border-color: rgba(255,255,255,0.1);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .action-type {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .timestamp {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .card-body {
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .hash-tag {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 0.75rem;
+            background-color: rgba(0,0,0,0.3);
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border: 1px solid rgba(255,255,255,0.05);
+            word-break: break-all;
+        }
+        
+        .hash-label {
+            color: var(--accent);
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .json-block {
+            background: rgba(0,0,0,0.2);
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #a78bfa;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            margin-top: 0.5rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            <div class="logo-icon">R</div>
+            ReguFlow Dashboard
+        </div>
+        <div class="status-badge">
+            <div class="status-dot"></div>
+            Air-Gapped Mode Active
+        </div>
+    </header>
+
+    <main>
+        <h1>Cryptographic Audit Ledger</h1>
+        <p class="subtitle">Real-time view of verified compliance task executions and routing.</p>
+        
+        <div class="ledger-container" id="ledger-container">
+            <div class="empty-state">
+                <div class="empty-icon">⏳</div>
+                <h3>Waiting for pipeline execution...</h3>
+                <p>No ledger entries found. Please drop a mock circular into the uploads folder.</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        async function fetchLedger() {
+            try {
+                const res = await fetch('/api/v1/ledger');
+                const data = await res.json();
+                
+                const container = document.getElementById('ledger-container');
+                
+                if (data.data && data.data.length > 0) {
+                    container.innerHTML = '';
+                    
+                    data.data.forEach((entry, index) => {
+                        const card = document.createElement('div');
+                        card.className = 'ledger-card';
+                        card.style.animationDelay = `${index * 0.1}s`;
+                        
+                        const date = new Date(entry.timestamp).toLocaleString();
+                        
+                        let detailsHtml = `<div class="json-block">${JSON.stringify(entry.details, null, 2)}</div>`;
+                        
+                        card.innerHTML = `
+                            <div class="card-header">
+                                <div class="action-type">${entry.action.toUpperCase()}</div>
+                                <div class="timestamp">${date}</div>
+                            </div>
+                            <div class="card-body">
+                                <strong>Payload Details:</strong>
+                                ${detailsHtml}
+                                <div class="hash-tag">
+                                    <span class="hash-label">SHA-256:</span> ${entry.payload_hash || entry.hash}
+                                </div>
+                            </div>
+                        `;
+                        
+                        container.appendChild(card);
+                    });
+                }
+            } catch (err) {
+                console.error("Error fetching ledger", err);
+            }
+        }
+
+        // Poll every 5 seconds
+        fetchLedger();
+        setInterval(fetchLedger, 5000);
+    </script>
+</body>
+</html>

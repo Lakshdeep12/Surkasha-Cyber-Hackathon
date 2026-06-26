@@ -1,25 +1,122 @@
 import { useEffect, useState } from 'react';
-import { api, DashboardStats, fmtDate, fmtDateTime, priorityClass } from '../api/client';
+import {
+  api,
+  CircularCategory,
+  DashboardStats,
+  Priority,
+  fmtDate,
+  fmtDateTime,
+  priorityClass,
+} from '../api/client';
+
+const ZERO_STATS: DashboardStats = {
+  total_circulars: 0,
+  draft_circulars: 0,
+  published_circulars: 0,
+  critical_advisories: 0,
+  recent_publications: [],
+  recent_events: [],
+};
+
+const titleFromFile = (name: string) =>
+  name
+    .replace(/\.[^.]+$/, '')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, c => c.toUpperCase()) || 'Uploaded RBI Sandbox Circular';
+
+const nextReference = () => {
+  const now = new Date();
+  const stamp = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, '0'),
+    String(now.getDate()).padStart(2, '0'),
+    String(now.getHours()).padStart(2, '0'),
+    String(now.getMinutes()).padStart(2, '0'),
+    String(now.getSeconds()).padStart(2, '0'),
+  ].join('');
+  return `RBI-SBX-${stamp}`;
+};
 
 export default function Dashboard({ onNavigate }: { onNavigate: (p: string) => void }) {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [stats, setStats] = useState<DashboardStats>(ZERO_STATS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [category, setCategory] = useState<CircularCategory>('Compliance Notice');
+  const [priority, setPriority] = useState<Priority>('Medium');
+  const [title, setTitle] = useState('');
 
   const load = async () => {
     try {
       setLoading(true);
-      const data = await fetch('/api/stats').then(r => r.json());
-      setStats(data);
+      const data = await api.getStats();
+      setStats(data ?? ZERO_STATS);
       setError(null);
     } catch (e: any) {
       setError('Unable to connect to DRBI API server.');
+      setStats(ZERO_STATS);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => { load(); }, []);
+
+  const handleFileChange = (nextFile: File | undefined) => {
+    if (!nextFile) {
+      setFile(null);
+      return;
+    }
+    if (!nextFile.name.toLowerCase().endsWith('.pdf')) {
+      setUploadError('Only PDF circulars can be uploaded.');
+      setFile(null);
+      return;
+    }
+    setFile(nextFile);
+    setTitle(current => current || titleFromFile(nextFile.name));
+    setUploadError(null);
+    setUploadSuccess(null);
+  };
+
+  const handleUpload = async () => {
+    if (!file) {
+      setUploadError('Choose an RBI sandbox circular PDF first.');
+      return;
+    }
+    setUploading(true);
+    setUploadError(null);
+    setUploadSuccess(null);
+    const ref = nextReference();
+    try {
+      const circular = await api.createCircular({
+        reference_number: ref,
+        title: title.trim() || titleFromFile(file.name),
+        category,
+        priority,
+        summary: `Uploaded from RBI Sandbox file ${file.name}. Agent intake pending downstream processing.`,
+        full_content: `Circular uploaded from RBI Sandbox.\n\nSource file: ${file.name}\nReference: ${ref}`,
+        target_departments: ['Compliance', 'Risk Management'],
+        status: 'Draft',
+        issue_date: new Date().toISOString().slice(0, 10),
+        effective_date: new Date().toISOString().slice(0, 10),
+      });
+      await api.uploadPdf(circular.id, file);
+      await api.publishCircular(circular.id);
+      setUploadSuccess(`${ref} uploaded, published, and reflected in the dashboard.`);
+      setFile(null);
+      setTitle('');
+      await load();
+    } catch (e: any) {
+      setUploadError(e.message || 'Upload failed.');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   if (loading) return (
     <div className="page-container">
@@ -39,7 +136,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: (p: string) => v
     </div>
   );
 
-  const s = stats!;
+  const s = stats;
 
   const statCards = [
     {
@@ -83,6 +180,92 @@ export default function Dashboard({ onNavigate }: { onNavigate: (p: string) => v
         <button className="btn btn-ghost btn-sm ml-2" onClick={load}>↻ Refresh</button>
       </div>
 
+      <div className="card border-l-4 border-l-drbi-blue">
+        <div className="card-header flex items-center justify-between">
+          <div>
+            <div className="text-sm font-bold text-drbi-navy uppercase tracking-wide">
+              RBI Sandbox Circular Upload
+            </div>
+            <div className="text-xs text-drbi-muted mt-0.5">
+              Upload one PDF and the dashboard will update from 0 to the live uploaded count.
+            </div>
+          </div>
+          <span className="badge badge-datasec">Live Intake</span>
+        </div>
+        <div className="card-body space-y-4">
+          {uploadSuccess && (
+            <div className="bg-green-50 border border-green-300 text-green-800 text-sm rounded px-4 py-2">
+              ✓ {uploadSuccess}
+            </div>
+          )}
+          {uploadError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded px-4 py-2">
+              {uploadError}
+            </div>
+          )}
+          <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr_160px_160px_auto] gap-3 items-end">
+            <div>
+              <label className="form-label">Circular PDF</label>
+              <input
+                id="dashboard-rbi-upload"
+                type="file"
+                accept=".pdf,application/pdf"
+                className="form-input file:mr-3 file:py-1 file:px-3 file:rounded file:border file:border-drbi-border file:bg-white file:text-drbi-navy file:font-semibold"
+                onChange={e => handleFileChange(e.target.files?.[0])}
+                disabled={uploading}
+              />
+            </div>
+            <div>
+              <label className="form-label">Title</label>
+              <input
+                id="dashboard-rbi-title"
+                className="form-input"
+                placeholder="Auto-filled from file name"
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                disabled={uploading}
+              />
+            </div>
+            <div>
+              <label className="form-label">Category</label>
+              <select
+                className="form-select w-full"
+                value={category}
+                onChange={e => setCategory(e.target.value as CircularCategory)}
+                disabled={uploading}
+              >
+                {['Cyber Advisory', 'Fraud Alert', 'Data Security Circular', 'Compliance Notice', 'Master Direction'].map(c => (
+                  <option key={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="form-label">Priority</label>
+              <select
+                className="form-select w-full"
+                value={priority}
+                onChange={e => setPriority(e.target.value as Priority)}
+                disabled={uploading}
+              >
+                {['Low', 'Medium', 'High', 'Critical'].map(p => <option key={p}>{p}</option>)}
+              </select>
+            </div>
+            <button
+              id="dashboard-upload-publish"
+              className="btn btn-primary whitespace-nowrap"
+              onClick={handleUpload}
+              disabled={uploading || !file}
+            >
+              {uploading ? 'Processing...' : 'Upload & Publish'}
+            </button>
+          </div>
+          <div className="text-xs text-drbi-muted">
+            Current live state: <strong>{s.total_circulars}</strong> circular(s), <strong>{s.published_circulars}</strong> published,
+            <strong> {s.recent_events.length}</strong> recent event(s).
+          </div>
+        </div>
+      </div>
+
       {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map(c => (
@@ -106,7 +289,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: (p: string) => v
             </span>
             <button
               className="btn btn-ghost btn-sm text-drbi-blue"
-              onClick={() => onNavigate('notices')}
+              onClick={() => onNavigate('published')}
             >
               View All →
             </button>

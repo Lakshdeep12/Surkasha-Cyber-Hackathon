@@ -56,3 +56,36 @@ class EventOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# ── Compliance Authorization ───────────────────────────────────
+class AuthorizationRequest(BaseModel):
+    """Request body for POST /api/v1/compliance/{case_id}/authorize"""
+    authorization_code: str
+
+
+class AuthorizationResponse(BaseModel):
+    """Response returned by the authorization endpoint."""
+    case_id: str
+    status: str                          # AWAITING_AUTHORIZATION | COMPLETED
+    message: str                         # human-readable result
+    authorized_by: Optional[str] = None
+    authorized_at: Optional[str] = None  # ISO-8601 string
+    authorization_hash: Optional[str] = None
+    failed_attempts: int = 0
+
+
+class ComplianceCaseOut(BaseModel):
+    """Full compliance case state (returned by GET /status)."""
+    case_id: str
+    regulation_id: str
+    regulation_title: Optional[str] = None
+    status: str
+    authorized_by: Optional[str] = None
+    authorized_at: Optional[datetime] = None
+    authorization_hash: Optional[str] = None
+    failed_attempts: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

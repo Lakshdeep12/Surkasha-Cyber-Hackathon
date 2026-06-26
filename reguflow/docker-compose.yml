@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: reguflow_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: reguflow_db
+      MYSQL_USER: reguflow_user
+      MYSQL_PASSWORD: reguflow_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - reguflow_network
+
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: reguflow_chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    networks:
+      - reguflow_network
+
+  backend:
+    build: 
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    container_name: reguflow_backend
+    ports:
+      - "8080:8080" # Backend on 8080 to not conflict with chroma on 8000
+    environment:
+      - DATABASE_URL=mysql+pymysql://reguflow_user:reguflow_password@mysql:3306/reguflow_db
+      - CHROMA_URL=http://chromadb:8000
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+    depends_on:
+      - mysql
+      - chromadb
+    volumes:
+      - ./backend:/app/backend
+      - ./agents:/app/agents
+      - ./workflows:/app/workflows
+      - ./database:/app/database
+      - D:/Suraksha hackathon/rbi sandbox/backend/uploads:/app/uploads # Mount uploads for testing
+    networks:
+      - reguflow_network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/frontend.Dockerfile
+    container_name: reguflow_frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8080
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - reguflow_network
+
+networks:
+  reguflow_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  chroma_data:

@@ -10,6 +10,7 @@ export default function PublishedNotices() {
   const [search, setSearch] = useState('');
   const [filterCat, setFilterCat] = useState('');
   const [filterPri, setFilterPri] = useState('');
+  const [rirLoading, setRirLoading] = useState<string | null>(null);
 
   const load = async () => {
     try {
@@ -42,6 +43,32 @@ export default function PublishedNotices() {
       return;
     }
     window.open(api.downloadPdfUrl(c.id), '_blank');
+  };
+
+  const handleRIR = async (c: Circular) => {
+    setRirLoading(c.reference_number);
+    try {
+      const res = await fetch(
+        `http://localhost:8000/api/v1/regulations/${encodeURIComponent(c.reference_number)}/download-summary`
+      );
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: 'Unknown error' }));
+        throw new Error(err.detail || `HTTP ${res.status}`);
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Regulatory_Intelligence_Report_${c.reference_number}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e: any) {
+      setError(`RIR generation failed: ${e.message}`);
+    } finally {
+      setRirLoading(null);
+    }
   };
 
   const filtered = pubs.filter(c => {
@@ -153,6 +180,15 @@ export default function PublishedNotices() {
                         >
                           ↓ PDF
                         </button>
+                        <button
+                          id={`btn-rir-${c.id}`}
+                          className="btn btn-sm btn-primary"
+                          onClick={() => handleRIR(c)}
+                          title="Download AI Regulatory Intelligence Report"
+                          disabled={rirLoading === c.reference_number}
+                        >
+                          {rirLoading === c.reference_number ? '⏳ AI...' : '🧠 RIR'}
+                        </button>
                         {c.status === 'Published' && (
                           <button
                             id={`btn-archive-${c.id}`}
@@ -215,15 +251,39 @@ export default function PublishedNotices() {
                 </div>
               )}
               {viewCircular.pdf_path && (
-                <div className="flex gap-2 pt-2">
+                <div className="flex gap-2 pt-2 flex-wrap">
                   <a
                     href={api.downloadPdfUrl(viewCircular.id)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="btn btn-primary btn-sm"
+                    className="btn btn-secondary btn-sm"
                   >
-                    ↓ Download PDF
+                    ↓ Download Original PDF
                   </a>
+                  <button
+                    id={`btn-rir-modal-${viewCircular.id}`}
+                    className="btn btn-primary btn-sm flex items-center gap-1"
+                    onClick={() => handleRIR(viewCircular)}
+                    disabled={rirLoading === viewCircular.reference_number}
+                  >
+                    {rirLoading === viewCircular.reference_number
+                      ? '⏳ Generating AI Report...'
+                      : '🧠 Download Regulatory Intelligence Report'}
+                  </button>
+                </div>
+              )}
+              {!viewCircular.pdf_path && (
+                <div className="pt-2">
+                  <button
+                    id={`btn-rir-modal-nopdf-${viewCircular.id}`}
+                    className="btn btn-primary btn-sm flex items-center gap-1"
+                    onClick={() => handleRIR(viewCircular)}
+                    disabled={rirLoading === viewCircular.reference_number}
+                  >
+                    {rirLoading === viewCircular.reference_number
+                      ? '⏳ Generating AI Report...'
+                      : '🧠 Download Regulatory Intelligence Report'}
+                  </button>
                 </div>
               )}
             </div>
